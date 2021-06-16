@@ -6,14 +6,11 @@ public class Solutions {
 
     /**
      *  regular express match: * and ?
+     *  思路一：基于递归的方法，
      * @param s
      * @param p
      * @return
      */
-    public static boolean isMatch(String s, String p) {
-        return isMatchS2(s, p);
-    }
-
     private static boolean isMatchS1(String s, String p) {
         if (p.isEmpty()) return s.isEmpty();
         if (p.length() == 1) {
@@ -42,24 +39,33 @@ public class Solutions {
                 && isMatchS2(s.substring(1), p.substring(1));
     }
 
+    private static boolean matches(String s, String p, int i, int j) {
+        if (i == 0) return false;
+        if (p.charAt(j-1) == '.') return true;
+        return p.charAt(j - 1) == s.charAt(i-1);
+    }
+
     private static boolean isMatchS3(String s, String p) {
-        // dp method
-        if (p.isEmpty()) return s.isEmpty();
+        int m = s.length();
+        int n = p.length();
 
-        int sL = s.length();
-        int pL = p.length();
-        char[] sc = s.toCharArray();
-        char[] pc = p.toCharArray();
-
-        boolean[][] dp = new boolean[sL+1][pL+1];
-        // INIT
+        boolean[][] dp = new boolean[m+1][n + 1];
         dp[0][0] = true;
-        for (int i = 1; i <= pL; ++i) {
-            if (pc[i-1] == '*' && dp[0][i-2]) {
-                dp[0][i] = true;
+        for (int i = 0; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (p.charAt(j-1) == '*') {
+                    dp[i][j] = dp[i][j-2];
+                    if (matches(s, p, i, j-1)) {
+                        dp[i][j] = dp[i][j-2] || dp[i-1][j];
+                    }
+                } else {
+                    if (matches(s, p, i, j)) {
+                        dp[i][j] = dp[i-1][j-1];
+                    }
+                }
             }
         }
-        return false;
+        return dp[m][n];
     }
 
     public int largestRectangleArea(List<Integer> vector) {
@@ -69,7 +75,7 @@ public class Solutions {
     public static void main(String[] args) {
         String s = "aa";
         String p = "a*";
-        boolean t = isMatch(s, p);
+        boolean t = isMatchS3(s, p);
         System.out.println(t);
     }
 }
